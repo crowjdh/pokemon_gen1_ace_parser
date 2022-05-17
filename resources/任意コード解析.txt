@@ -1,0 +1,91 @@
+1st nn: 0xD9D2
+
+33 * 6 = 198 = 0xC6
+
+6th nn: 0xD9D2 + 0xC6 = 0xDA98
+
+
+て: C3 / jp yyxx
+ウ: 82
+ん: DE
+
+てウん: C3 82 DE / jp (&82DE)(0xDE82)
+
+//
+手持ち
+
+がめぜレば: ld h D2 / ld l A7 / ldd a (hl)
+レぐガョじ: and a / jr z +05 / xor a / inc l
+づのどの: ldd (hl) a / ret / inc (hl) / ret
+てウん: jp 82 DE(0xDE82)
+
+; 手持ち種類変換
+ld h D2
+ld l A7
+ldd a (hl)
+
+and a
+jr z +05
+xor a
+inc l
+ldd (hl) a
+ret
+
+inc (hl)
+ret
+
+; 手持ち６番目の命令を実行
+jp 82 DE(0xDE82)
+
+//
+
+任意コード実行本体(Box)
+
+ぼづグがめ(box nn 1 / 0xDE64): ld a 32 / rlca / ld h D2
+ぜびひガづ(box nn 2 / 0xDE6A): ld l 3B / rlc l / ldd (hl) a
+がよぜシレ(box nn 3 / 0xDE70): ld h D6 / ld l 8B / and a
+ぼグづョべ(box nn 4 / 0xDE76): ld a 07 / ldd (hl) a / xor a / dec a
+づの　　　(box nn 5 / 0xDE7C): ldd (hl) a / ret
+ョぐっ　　(box nn 6 / 0xDE82): xor a / jr z +DF
+
+; てウん => てEん
+ld a  ; a = 0x32
+rlca  ; a = 0x64
+ld h D2
+ld l 3B
+rlc l  ; l = 0x76
+ldd (hl) a  ; (&0xD276) = 0x64(E), hl = 0xD26D - 1
+
+; Fly destination flags(first byte)
+ld h D6
+ld l 8B
+and a  ; Z = 0, N = 0, H = 1, C = 0
+ld a 07  ; a = 0x07
+ldd (hl) a  ; &0xD68B = 0x07, hl = 0xD68B - 1 = 0xD68A
+
+; Fly destination flags(last byte)
+xor a  ; Z = 1, N = 0, H = 0, C = 0
+dec a  ; a = 0x06
+ldd (hl) a  ; (&0xD68A) = 0x06, hl = 0xD68A - 1 = 0xD689
+ret
+
+; Jump to nn of first pokemon in box
+xor a  ; Z = 1, N = 0, H = 0, C = 0
+jr z +DF  ; JUMP TO 0xDE82 + 0x02(nn's ３番目 char) + 1(PC = next line) - 0x21(two's complement of 0xDF) = 0xDE64
+
+//
+手持ち
+nn 1: 0xD257
+nn 2: 0xD25D
+nn 3: 0xD263
+nn 4: 0xD269 6A 6B 6C 6D 6E
+nn 5: 0xD26F
+nn 6: 0xD275 76 77 78 79 8A
+
+box
+nn 1: 0xDE64
+nn 2: 0xDE6A
+nn 3: 0xDE70
+nn 4: 0xDE76
+nn 5: 0xDE7C
+nn 6: 0xDE82
